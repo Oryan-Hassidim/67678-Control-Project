@@ -7,11 +7,11 @@ import random
 import numpy as np
 from tkinter import Tk, filedialog
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = str(50) + "," + str(50)
+os.environ["SDL_VIDEO_WINDOW_POS"] = str(50) + "," + str(50)
 
 root = Tk()
 root.withdraw()  # Hides small tkinter window.
-root.attributes('-topmost', True)
+root.attributes("-topmost", True)
 
 # def initialize_variables():
 # screen resolution and scaling
@@ -22,7 +22,9 @@ SCALE3 = SCREEN_MAX * 3 / 500  # 6 vel_x threshold for bonus y 1
 SCALE4 = SCREEN_MAX * 1 / 125  # 8 bonus y 2
 SCALE5 = SCREEN_MAX * 3 / 250  # 12 vel_x threshold for bonus y 2
 SCALE6 = SCREEN_MAX * 2 / 125  # 16 bonus y 3
-SCALE7 = SCREEN_MAX * 1 / 50  # 20 vel_x threshold for bonus y 3; max speed; vel_y gain when jumping
+SCALE7 = (
+    SCREEN_MAX * 1 / 50
+)  # 20 vel_x threshold for bonus y 3; max speed; vel_y gain when jumping
 SCALE8 = SCREEN_MAX * 3 / 100  # 30
 SCALE9 = SCREEN_MAX * 1 / 20  # 50 wall width; player height
 SCALE10 = SCREEN_MAX * 3 / 20  # 150 distance between tiles
@@ -42,31 +44,33 @@ BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
 PALETTE = (GREEN, RED, BLUE, YELLOW)
 WALL_WIDTH = SCALE9
-FONT = pygame.font.Font(os.path.join('fonts', 'agency_fb.ttf'), 20)
-FONT2 = pygame.font.Font(os.path.join('fonts', 'agency_fb.ttf'), 50)
+FONT = pygame.font.Font(os.path.join("fonts", "agency_fb.ttf"), 20)
+FONT2 = pygame.font.Font(os.path.join("fonts", "agency_fb.ttf"), 50)
 SCREEN = pygame.display.set_mode((SCREEN_MAX, SCREEN_MAX), 0, 32)
 
 # loading sprites and conversion
-IMAGE = pygame.image.load(os.path.join('sprites', 'icyMan.png')).convert_alpha()
+IMAGE = pygame.image.load(os.path.join("sprites", "icyMan.png")).convert_alpha()
 IMAGE_OG = IMAGE
-IMAGE_ANTAGONIST = pygame.image.load(os.path.join('sprites', 'icyMan_antagonist.png')).convert_alpha()
+IMAGE_ANTAGONIST = pygame.image.load(
+    os.path.join("sprites", "icyMan_antagonist.png")
+).convert_alpha()
 IMAGE = pygame.transform.scale(IMAGE, (int(SCALE8), int(SCALE9)))
 IMAGE_ANTAGONIST = pygame.transform.scale(IMAGE_ANTAGONIST, (int(SCALE8), int(SCALE9)))
-IMAGE2 = pygame.image.load(os.path.join('sprites', 'icyMan2.png')).convert_alpha()
+IMAGE2 = pygame.image.load(os.path.join("sprites", "icyMan2.png")).convert_alpha()
 IMAGE2 = pygame.transform.scale(IMAGE2, (int(SCALE8), int(SCALE9)))
-IMAGE3 = pygame.image.load(os.path.join('sprites', 'icyMan3.png')).convert_alpha()
+IMAGE3 = pygame.image.load(os.path.join("sprites", "icyMan3.png")).convert_alpha()
 IMAGE3 = pygame.transform.scale(IMAGE3, (int(SCALE8), int(SCALE9)))
-IMAGE4 = pygame.image.load(os.path.join('sprites', 'icyMan4.png')).convert_alpha()
+IMAGE4 = pygame.image.load(os.path.join("sprites", "icyMan4.png")).convert_alpha()
 IMAGE4 = pygame.transform.scale(IMAGE4, (int(SCALE8), int(SCALE9)))
-IMAGE5 = pygame.image.load(os.path.join('sprites', 'icyMan5.png')).convert_alpha()
+IMAGE5 = pygame.image.load(os.path.join("sprites", "icyMan5.png")).convert_alpha()
 IMAGE5 = pygame.transform.scale(IMAGE5, (int(SCALE8), int(SCALE9)))
 COLOR_IMAGE = pygame.Surface(IMAGE.get_size()).convert_alpha()
 COLOR_IMAGE.fill(RED)
 ICY_IMAGES = [IMAGE, IMAGE2, IMAGE3, IMAGE4, IMAGE5]
-ICE = pygame.image.load(os.path.join('sprites', 'icy2.png')).convert_alpha()
-BG = pygame.image.load(os.path.join('sprites', 'background.jpg'))
+ICE = pygame.image.load(os.path.join("sprites", "icy2.png")).convert_alpha()
+BG = pygame.image.load(os.path.join("sprites", "background.jpg"))
 BG = pygame.transform.scale(BG, (SCREEN_MAX, SCREEN_MAX))
-WALL_RIGHT = pygame.image.load(os.path.join('sprites', 'wall2.png'))
+WALL_RIGHT = pygame.image.load(os.path.join("sprites", "wall2.png"))
 WALL_RIGHT = pygame.transform.scale(WALL_RIGHT, (int(WALL_WIDTH), SCREEN_MAX))
 WALL_RIGHT_FLIP = pygame.transform.flip(WALL_RIGHT, False, True)
 WALL_LEFT = pygame.transform.flip(WALL_RIGHT, True, True)
@@ -75,13 +79,21 @@ wall_height1 = 0
 wall_height2 = -SCREEN_MAX
 PLAYER_WIDTH = SCALE8
 PLAYER_HEIGHT = SCALE9
-pygame.mixer.music.load(os.path.join('music', 'theme.mp3'))
+pygame.mixer.music.load(os.path.join("music", "theme.mp3"))
 pygame.mixer.music.play(loops=-1)
+
+from dqn import DQN
+import dqn
+
+FRAME_NUMBER: int = 0
+LAST_ACTION: dqn.Action = dqn.Action.NOOP
+DQNET: DQN = None
+DQN_TRAIN: bool = False
 
 
 class IcyTowerGame:
     def __init__(self, genomes, config, train, ai, versus):
-        pygame.display.set_caption('icyAI - AI learning to play Icy Tower')
+        pygame.display.set_caption("icyAI - AI learning to play Icy Tower")
         self.explosion_group = pygame.sprite.Group()
         self.mainClock = pygame.time.Clock()
         self.genomes = genomes
@@ -101,13 +113,23 @@ class IcyTowerGame:
             self.reset()
         else:
             self.human_players = [
-                Player(random.randint(int(WALL_WIDTH), int(SCREEN_MAX - PLAYER_WIDTH - WALL_WIDTH)),
-                       SCREEN_MAX - SCALE9 - SCALE9)]
+                Player(
+                    random.randint(
+                        int(WALL_WIDTH), int(SCREEN_MAX - PLAYER_WIDTH - WALL_WIDTH)
+                    ),
+                    SCREEN_MAX - SCALE9 - SCALE9,
+                )
+            ]
 
         if self.versus:
             self.human_players = [
-                Player(random.randint(int(WALL_WIDTH), int(SCREEN_MAX - PLAYER_WIDTH - WALL_WIDTH)),
-                       SCREEN_MAX - SCALE9 - SCALE9)]
+                Player(
+                    random.randint(
+                        int(WALL_WIDTH), int(SCREEN_MAX - PLAYER_WIDTH - WALL_WIDTH)
+                    ),
+                    SCREEN_MAX - SCALE9 - SCALE9,
+                )
+            ]
             self.players = self.ai_players + self.human_players
         else:
             if self.ai:
@@ -115,10 +137,12 @@ class IcyTowerGame:
             else:
                 self.players = self.human_players
 
-        self.tiles = [Tile(WALL_WIDTH, SCREEN_MAX - SCALE9 + 100, SCREEN_MAX - WALL_WIDTH),
-                      Tile(WALL_WIDTH, SCREEN_MAX - SCALE9, SCREEN_MAX - WALL_WIDTH)]
+        self.tiles = [
+            Tile(WALL_WIDTH, SCREEN_MAX - SCALE9 + 100, SCREEN_MAX - WALL_WIDTH),
+            Tile(WALL_WIDTH, SCREEN_MAX - SCALE9, SCREEN_MAX - WALL_WIDTH),
+        ]
         self.update_tiles()
-        self.walls = [Wall('left'), Wall('right')]
+        self.walls = [Wall("left"), Wall("right")]
 
         # initialized variables
         self.drop = False
@@ -144,7 +168,7 @@ class IcyTowerGame:
         self.popped_tiles = 0
 
     def reset(self):
-        pygame.display.set_caption('icyAI - AI learning to play Icy Tower')
+        pygame.display.set_caption("icyAI - AI learning to play Icy Tower")
         self.mainClock = pygame.time.Clock()
 
         for _, g in self.genomes:
@@ -153,8 +177,13 @@ class IcyTowerGame:
             # net.reset()
             self.nets.append(net)
             self.ai_players.append(
-                Player(random.randint(int(WALL_WIDTH), int(SCREEN_MAX - PLAYER_WIDTH - WALL_WIDTH)),
-                       SCREEN_MAX - SCALE9 - SCALE9))
+                Player(
+                    random.randint(
+                        int(WALL_WIDTH), int(SCREEN_MAX - PLAYER_WIDTH - WALL_WIDTH)
+                    ),
+                    SCREEN_MAX - SCALE9 - SCALE9,
+                )
+            )
             # print(g.species_id)
             # if not g.fitness:
             g.fitness = 0
@@ -166,7 +195,7 @@ class IcyTowerGame:
 
     def color_species(self):
         for i, (_, g) in enumerate(self.genomes):
-            self.players[i].image = ICY_IMAGES[(g.species_id-1) % len(ICY_IMAGES)]
+            self.players[i].image = ICY_IMAGES[(g.species_id - 1) % len(ICY_IMAGES)]
             self.players[i].og_image = self.players[i].image
 
     def play_step(self):
@@ -229,13 +258,24 @@ class IcyTowerGame:
         for x, player in enumerate(players):
             tile_details = []
             for i in range(11):
-                tile_details.append(self.tiles[player.current_floor + i].rect.x - player.rect.x)
-                tile_details.append(self.tiles[player.current_floor + i].rect.y - player.rect.y)
+                tile_details.append(
+                    self.tiles[player.current_floor + i].rect.x - player.rect.x
+                )
+                tile_details.append(
+                    self.tiles[player.current_floor + i].rect.y - player.rect.y
+                )
                 tile_details.append(self.tiles[player.current_floor + i].tile_width)
 
             action = self.nets[x].activate(
-                (player.rect.x, player.rect.y, player.vel_x, player.vel_y, int(player.on_floor),
-                 *tile_details))
+                (
+                    player.rect.x,
+                    player.rect.y,
+                    player.vel_x,
+                    player.vel_y,
+                    int(player.on_floor),
+                    *tile_details,
+                )
+            )
             # action = self.nets[x].advance((player.rect.x, player.rect.y, player.vel_x, player.vel_y, int(player.on_floor),
             #      *tile_details), 1/60, 1/60)
 
@@ -256,7 +296,7 @@ class IcyTowerGame:
             # self.ge[x].fitness += 0.1
 
             # if player.switch is True:
-                # self.ge[x].fitness -= 10
+            # self.ge[x].fitness -= 10
             player.frame_iteration += 1
 
             # explosion animation
@@ -311,7 +351,7 @@ class IcyTowerGame:
 
             if self.start_pos:
                 cur_pos = pygame.mouse.get_pos()
-                self.drop_speed = int((cur_pos[1] - self.start_pos[1])/10)
+                self.drop_speed = int((cur_pos[1] - self.start_pos[1]) / 10)
             else:
                 if self.change_drop_speed:
                     self.drop_speed = self.level
@@ -356,7 +396,7 @@ class IcyTowerGame:
         for x, player in enumerate(players):
             player.current_y += player.dy
             drop_speed = 0
-            if player.current_y < SCREEN_MAX/2:
+            if player.current_y < SCREEN_MAX / 2:
                 player.individual_drop = True
             if player.individual_drop:
                 drop_speed += self.level
@@ -436,7 +476,7 @@ class IcyTowerGame:
             if event.type == MOUSEBUTTONUP:
                 self.start_pos = None
 
-            if not self.ai or self.versus:
+            if (not self.ai or self.versus) and DQNET is None:
                 if event.type == KEYDOWN:
                     if event.key == K_RIGHT:
                         self.human_players[0].right = True
@@ -452,6 +492,22 @@ class IcyTowerGame:
                         self.human_players[0].left = False
                     # if event.key == K_SPACE:
                     #     self.players[0].jump = False
+        if DQNET is not None:  # there is a DQN
+            global FRAME_NUMBER, LAST_ACTION
+            FRAME_NUMBER += 1
+            action: dqn.Action = DQNET.choose_action() if FRAME_NUMBER % 4 == 1 else LAST_ACTION
+            LAST_ACTION = action
+            if action == dqn.Action.RIGHT:
+                self.human_players[0].right = True
+                self.human_players[0].left = False
+            elif action == dqn.Action.LEFT:
+                self.human_players[0].left = True
+                self.human_players[0].right = False
+            elif action == dqn.Action.JUMP:
+                self.human_players[0].jump = True
+            elif action == dqn.Action.NOOP:
+                self.human_players[0].right = False
+                self.human_players[0].left = False
 
     # def collision_check(self):
     #     for player in self.players:
@@ -473,13 +529,13 @@ class IcyTowerGame:
     def collision_check(self):
         for player in self.players:
             player.on_floor = False
-            start = player.current_floor-self.popped_tiles
+            start = player.current_floor - self.popped_tiles
             if 0 <= start < 10:
                 c = start
             else:
                 c = 10
             # print(c)
-            for idx, tile in enumerate(self.tiles[start-c:start+10]):
+            for idx, tile in enumerate(self.tiles[start - c : start + 10]):
                 # for idx, tile in enumerate(self.tiles):
                 if player.rect.colliderect(tile):
                     if player.rect.bottom - tile.rect.top < 21 and player.dy >= 0:
@@ -494,7 +550,9 @@ class IcyTowerGame:
                         player.current_height = tile.rect.top + 1
                         break
 
-            if (player.rect.x <= WALL_WIDTH) or (player.rect.x+PLAYER_WIDTH >= SCREEN_MAX-WALL_WIDTH):
+            if (player.rect.x <= WALL_WIDTH) or (
+                player.rect.x + PLAYER_WIDTH >= SCREEN_MAX - WALL_WIDTH
+            ):
                 player.switch = True
 
     def update_tiles(self):
@@ -505,11 +563,20 @@ class IcyTowerGame:
                     tile_diff = self.tiles[-1].rect.top - 100
                     tile_width = random.randint(int(SCALE11), int(SCALE12))
                     if len(self.tiles) % 50 == 0:
-                        self.tiles.append(Tile(WALL_WIDTH, tile_diff, SCREEN_MAX-WALL_WIDTH))
+                        self.tiles.append(
+                            Tile(WALL_WIDTH, tile_diff, SCREEN_MAX - WALL_WIDTH)
+                        )
                     else:
                         self.tiles.append(
-                            Tile(random.randint(int(WALL_WIDTH), int(SCREEN_MAX - WALL_WIDTH - tile_width)), tile_diff,
-                                 tile_width))
+                            Tile(
+                                random.randint(
+                                    int(WALL_WIDTH),
+                                    int(SCREEN_MAX - WALL_WIDTH - tile_width),
+                                ),
+                                tile_diff,
+                                tile_width,
+                            )
+                        )
 
     # def remove_tiles(self):
     #     print(len(self.tiles))
@@ -529,7 +596,7 @@ class IcyTowerGame:
         SCREEN.fill((0, 0, 0))
         SCREEN.blit(BG, (0, 0))
 
-        for tile in self.tiles[0:self.highest_floor+10]:
+        for tile in self.tiles[0 : self.highest_floor + 10]:
             if 0 <= tile.rect.y <= SCREEN_MAX:
                 tile.draw()
 
@@ -539,11 +606,15 @@ class IcyTowerGame:
         for wall in self.walls:
             wall.draw()
 
-        msg_generation = FONT.render('Generation: ' + str(self.generation), True, GREEN)
-        msg_time = FONT.render('Time: ' + str(self.timesince), True, GREEN)
-        msg_floors = FONT.render('Floors climbed: ' + str(self.highest_floor), True, GREEN)
-        msg_fitness = FONT.render('Highest Fitness: ' + str(self.highest_fitness), True, GREEN)
-        msg_alive = FONT.render('Alive: ' + str(len(self.players)), True, GREEN)
+        msg_generation = FONT.render("Generation: " + str(self.generation), True, GREEN)
+        msg_time = FONT.render("Time: " + str(self.timesince), True, GREEN)
+        msg_floors = FONT.render(
+            "Floors climbed: " + str(self.highest_floor), True, GREEN
+        )
+        msg_fitness = FONT.render(
+            "Highest Fitness: " + str(self.highest_fitness), True, GREEN
+        )
+        msg_alive = FONT.render("Alive: " + str(len(self.players)), True, GREEN)
 
         SCREEN.blit(msg_time, (60, 20))
         SCREEN.blit(msg_floors, (60, 50))
@@ -565,10 +636,10 @@ class IcyTowerGame:
             wall.draw()
 
         for player in self.players:
-            msg_time = 'Time: ' + str(self.timesince)
-            msg_combo = 'Combo ON - combo_floors: ' + str(player.combo_floors)
-            msg_score = 'Score: ' + str(self.score)
-            msg_floors = 'Floors climbed: ' + str(player.current_floor)
+            msg_time = "Time: " + str(self.timesince)
+            msg_combo = "Combo ON - combo_floors: " + str(player.combo_floors)
+            msg_score = "Score: " + str(self.score)
+            msg_floors = "Floors climbed: " + str(player.current_floor)
 
             SCREEN.blit(FONT.render(msg_time, True, TEXT_COLOR), (60, 20))
             SCREEN.blit(FONT.render(msg_score, True, TEXT_COLOR), (60, 50))
@@ -597,15 +668,28 @@ class IcyTowerGame:
     def draw_window_pause(self):
         SCREEN.fill((0, 0, 0))
         SCREEN.blit(BG, (0, 0))
-        guy = pygame.image.load(os.path.join('sprites', 'icyMan.png')).convert_alpha()
-        SCREEN.blit(guy, ((SCREEN_MAX/2-guy.get_width()+80), 30))
-        msg_draw = FONT2.render('Running simulation in ' + str(self.clock_speed) + ' FPS', True, GREEN)
-        msg_draw2 = FONT2.render('Press Return to continue normal simulation', True, GREEN)
-        msg_draw3 = FONT2.render('Press +/- to increase/decrease simulation speed', True, GREEN)
+        guy = pygame.image.load(os.path.join("sprites", "icyMan.png")).convert_alpha()
+        SCREEN.blit(guy, ((SCREEN_MAX / 2 - guy.get_width() + 80), 30))
+        msg_draw = FONT2.render(
+            "Running simulation in " + str(self.clock_speed) + " FPS", True, GREEN
+        )
+        msg_draw2 = FONT2.render(
+            "Press Return to continue normal simulation", True, GREEN
+        )
+        msg_draw3 = FONT2.render(
+            "Press +/- to increase/decrease simulation speed", True, GREEN
+        )
 
-        SCREEN.blit(msg_draw, (SCREEN_MAX / 2 - msg_draw.get_width() / 2, SCREEN_MAX / 2))
-        SCREEN.blit(msg_draw2, (SCREEN_MAX / 2 - msg_draw2.get_width() / 2, SCREEN_MAX / 2 + 50))
-        SCREEN.blit(msg_draw3, (SCREEN_MAX / 2 - msg_draw3.get_width() / 2, SCREEN_MAX / 2 + 100))
+        SCREEN.blit(
+            msg_draw, (SCREEN_MAX / 2 - msg_draw.get_width() / 2, SCREEN_MAX / 2)
+        )
+        SCREEN.blit(
+            msg_draw2, (SCREEN_MAX / 2 - msg_draw2.get_width() / 2, SCREEN_MAX / 2 + 50)
+        )
+        SCREEN.blit(
+            msg_draw3,
+            (SCREEN_MAX / 2 - msg_draw3.get_width() / 2, SCREEN_MAX / 2 + 100),
+        )
         pygame.display.update()
 
     def update_fitness(self):
@@ -643,21 +727,25 @@ class IcyTowerGame:
                     if (player.current_floor - player.old_floor) > 1:
                         player.combo = True
                         if player.combo_added is False:
-                            player.combo_floors += player.current_floor - player.old_floor
+                            player.combo_floors += (
+                                player.current_floor - player.old_floor
+                            )
                     else:
                         if player.combo is True:
-                            self.score += player.combo_floors ** 2 * 10
+                            self.score += player.combo_floors**2 * 10
                         player.combo = False
                         player.combo_floors = 0
                 elif player.current_floor < player.old_floor:
                     if player.combo is True:
                         player.combo = False
-                        self.score += player.combo_floors ** 2 * 10
+                        self.score += player.combo_floors**2 * 10
                         player.combo_floors = 0
                 player.combo_added = True
                 self.score += add_score
             else:
                 player.old_floor = player.current_floor
+        # if DQNET is not None:
+        #     DQNET.update(self.score)
 
     def generate_particles(self):
         if not self.versus:
@@ -675,8 +763,18 @@ class IcyTowerGame:
     def add_particles(self, player):
         add_x = player.rect.x + random.randint(0, int(PLAYER_WIDTH))
         add_y = player.rect.y + PLAYER_HEIGHT
-        pointlist = [(8.25, 7.55), (10.0, 1.0), (11.75, 7.55), (18.55, 7.2), (12.85, 10.95), (15.3, 17.3),
-                     (10.0, 13.0), (4.7, 17.3), (7.15, 10.95), (1.45, 7.2)]
+        pointlist = [
+            (8.25, 7.55),
+            (10.0, 1.0),
+            (11.75, 7.55),
+            (18.55, 7.2),
+            (12.85, 10.95),
+            (15.3, 17.3),
+            (10.0, 13.0),
+            (4.7, 17.3),
+            (7.15, 10.95),
+            (1.45, 7.2),
+        ]
 
         for idx, item in enumerate(pointlist):
             pointlist[idx] = (item[0] + add_x, item[1] + add_y)
@@ -783,25 +881,25 @@ class Player(pygame.sprite.Sprite):
                 if self.left:
                     if self.vel_x > 0:  # fast direction change
                         self.vel_x = 0
-                    self.vel_x -= .5
+                    self.vel_x -= 0.5
                 if self.right:
                     if self.vel_x < 0:  # fast direction change
                         self.vel_x = 0
-                    self.vel_x += .5
+                    self.vel_x += 0.5
             # if nothing is pressed -> decelerate
             else:
                 if self.vel_x > 2:
-                    self.vel_x -= .5
+                    self.vel_x -= 0.5
                 elif self.vel_x < -2:
-                    self.vel_x += .5
+                    self.vel_x += 0.5
                 else:
                     self.vel_x = 0
         else:  # change movement direction if switch is True
             self.vel_x = -self.vel_x
             self.switch_count = 0
             # put player next to wall so there are no bugs
-            if self.rect.x > SCREEN_MAX/2:  # for right switch
-                self.rect.x = SCREEN_MAX-WALL_WIDTH-PLAYER_WIDTH
+            if self.rect.x > SCREEN_MAX / 2:  # for right switch
+                self.rect.x = SCREEN_MAX - WALL_WIDTH - PLAYER_WIDTH
             else:  # for left switch
                 self.rect.x = WALL_WIDTH
             self.switching = True
@@ -834,7 +932,12 @@ class Player(pygame.sprite.Sprite):
         # DISTANCE OF MOVEMENT; MAX SPEEDS AND BONUS Y
         # if not standing -> grant bonus_y and ensure max
         if dx != 0:
-            speed = [6 < dx*np.sign(dx) <= 8, 8 < dx*np.sign(dx) <= 11, 11 < dx*np.sign(dx) < 15, dx*np.sign(dx) >= 15]
+            speed = [
+                6 < dx * np.sign(dx) <= 8,
+                8 < dx * np.sign(dx) <= 11,
+                11 < dx * np.sign(dx) < 15,
+                dx * np.sign(dx) >= 15,
+            ]
             if speed[0]:
                 self.bonus_y = 2
             elif speed[1]:
@@ -860,8 +963,12 @@ class Player(pygame.sprite.Sprite):
     def draw(self):
         if self.tilting is True:
             rotated_image = pygame.transform.rotate(self.image, self.tilt)
-            new_rect = rotated_image.get_rect(center=self.image.get_rect(topleft=(self.rect.x, self.rect.y)).center)
-            SCREEN.blit(rotated_image, new_rect.topleft)  # , (self.rect.x, self.rect.y))
+            new_rect = rotated_image.get_rect(
+                center=self.image.get_rect(topleft=(self.rect.x, self.rect.y)).center
+            )
+            SCREEN.blit(
+                rotated_image, new_rect.topleft
+            )  # , (self.rect.x, self.rect.y))
         else:
             SCREEN.blit(self.image, (self.rect.x, self.rect.y))
 
@@ -872,12 +979,12 @@ class Wall(pygame.sprite.Sprite):
     def __init__(self, side):
         super().__init__()
         self.side = side.lower()
-        if self.side == 'left':
+        if self.side == "left":
             self.rect = pygame.Rect(0, 0, WALL_WIDTH, SCREEN_MAX)
             self.image = WALL_LEFT
             self.image_flip = WALL_LEFT_FLIP
-        if side.lower() == 'right':
-            self.rect = pygame.Rect(SCREEN_MAX-SCALE9, 0, WALL_WIDTH, SCREEN_MAX)
+        if side.lower() == "right":
+            self.rect = pygame.Rect(SCREEN_MAX - SCALE9, 0, WALL_WIDTH, SCREEN_MAX)
             self.image = WALL_RIGHT
             self.image_flip = WALL_RIGHT_FLIP
         self.width = self.WALL_WIDTH
@@ -902,10 +1009,10 @@ class Tile(pygame.sprite.Sprite):
 
     # drawing function for tiles
     def draw(self):
-        repetitions = int(self.tile_width/self.width)
+        repetitions = int(self.tile_width / self.width)
         image = self.image
         for i in range(repetitions):
-            SCREEN.blit(image, (self.rect.x+i*self.width, self.rect.y))
+            SCREEN.blit(image, (self.rect.x + i * self.width, self.rect.y))
             image = pygame.transform.flip(image, True, False)
 
 
@@ -940,7 +1047,7 @@ class Explosion(pygame.sprite.Sprite):
 
 
 def menu():
-    pygame.display.set_caption('icyAI - AI learning to play Icy Tower')
+    pygame.display.set_caption("icyAI - AI learning to play Icy Tower")
     global SCREEN
     tilt = 0
     turn = True
@@ -953,11 +1060,11 @@ def menu():
         c = 25
     else:
         c = 50
-    play_box = pygame.Rect(100-c, 100, 140, 32)
-    train_ai_box = pygame.Rect(100-c, 200-c, 140, 32)
-    play_ai_box = pygame.Rect(100-c, 300-c*2, 140, 32)
-    versus_box = pygame.Rect(100-c, 400-c*3, 140, 32)
-    color_inactive = pygame.Color('lightskyblue3')
+    play_box = pygame.Rect(100 - c, 100, 140, 32)
+    train_ai_box = pygame.Rect(100 - c, 200 - c, 140, 32)
+    play_ai_box = pygame.Rect(100 - c, 300 - c * 2, 140, 32)
+    versus_box = pygame.Rect(100 - c, 400 - c * 3, 140, 32)
+    color_inactive = pygame.Color("lightskyblue3")
     color_active = GREEN
     white = (245, 245, 245)
     active = True
@@ -968,23 +1075,34 @@ def menu():
     open_file = None
     clock = pygame.time.Clock()
     SCREEN = pygame.display.set_mode((SCREEN_MAX, SCREEN_MAX), 0, 32)
-    path = os.path.join(str(root), 'trained_models')
+    path = os.path.join(str(root), "trained_models")
     if c > 0:
-        im = pygame.transform.smoothscale(IMAGE_OG, (int(IMAGE_OG.get_width()/(c/25+1)), int(IMAGE_OG.get_height()/(c/25+1))))
+        im = pygame.transform.smoothscale(
+            IMAGE_OG,
+            (
+                int(IMAGE_OG.get_width() / (c / 25 + 1)),
+                int(IMAGE_OG.get_height() / (c / 25 + 1)),
+            ),
+        )
     else:
-        im = pygame.transform.smoothscale(IMAGE_OG, (int(IMAGE_OG.get_width()*0.8), int(IMAGE_OG.get_height()*0.8)))
+        im = pygame.transform.smoothscale(
+            IMAGE_OG,
+            (int(IMAGE_OG.get_width() * 0.8), int(IMAGE_OG.get_height() * 0.8)),
+        )
     while active:
         SCREEN.fill((0, 0, 0))
         SCREEN.blit(BG, (0, 0))
         rot_image = pygame.transform.rotate(im, tilt)
-        new_rect = rot_image.get_rect(center=rot_image.get_rect(topleft=(450-c*2, 100)).center)
+        new_rect = rot_image.get_rect(
+            center=rot_image.get_rect(topleft=(450 - c * 2, 100)).center
+        )
         SCREEN.blit(rot_image, new_rect)
         if turn:
-            tilt += .5
+            tilt += 0.5
             if tilt == 50:
                 turn = False
         else:
-            tilt -= .5
+            tilt -= 0.5
             if tilt == -50:
                 turn = True
 
@@ -1034,26 +1152,36 @@ def menu():
                     train_ai = True
                     active = False
                 if play_ai_box.collidepoint(event.pos):
-                    open_file = filedialog.askdirectory(mustexist=False, initialdir=path,
-                                                        title='Choose a model')  # Returns path as str
+                    open_file = filedialog.askdirectory(
+                        mustexist=False, initialdir=path, title="Choose a model"
+                    )  # Returns path as str
                     print("Let ai play")
                     play_ai = True
                 if versus_box.collidepoint(event.pos):
-                    open_file = filedialog.askdirectory(mustexist=False, initialdir=path,
-                                                        title='Choose a model')  # Returns path as str
+                    open_file = filedialog.askdirectory(
+                        mustexist=False, initialdir=path, title="Choose a model"
+                    )  # Returns path as str
                     print("Play against ai")
                     versus = True
-                if open_file != '':
+                if open_file != "":
                     active = False
 
         # Change the current color of the input box.
         # color = color_active if active else color_inactive
 
         # Render the current text.
-        txt_surface1 = font.render('PLAY', True, color_active if play else color_inactive)
-        txt_surface2 = font.render('TRAIN AI', True, color_active if train_ai else color_inactive)
-        txt_surface3 = font.render('LET AI PLAY', True, color_active if play_ai else color_inactive)
-        txt_surface4 = font.render('HUMAN VS. AI', True, color_active if versus else color_inactive)
+        txt_surface1 = font.render(
+            "PLAY", True, color_active if play else color_inactive
+        )
+        txt_surface2 = font.render(
+            "TRAIN AI", True, color_active if train_ai else color_inactive
+        )
+        txt_surface3 = font.render(
+            "LET AI PLAY", True, color_active if play_ai else color_inactive
+        )
+        txt_surface4 = font.render(
+            "HUMAN VS. AI", True, color_active if versus else color_inactive
+        )
         # Resize the box if the text is too long.
         width = max(200, txt_surface1.get_width() + 10)
         play_box.w = width
@@ -1061,19 +1189,45 @@ def menu():
         play_ai_box.w = width
         versus_box.w = width
 
-        controls1 = font.render('LEFT and RIGHT Keys to run; SPACE to Jump', True, white)
-        controls2 = font.render('Press ENTER to enter simulation speeding', True, white)
-        controls3 = font.render('Press +/- to increase/decrease simulation speed', True, white)
-        controls4 = font.render('Trained models saved in /trained_models/model1,2,3,...', True, white)
-        controls5 = font.render('Stats saved in this folder every 5 gens', True, white)
-        controls6 = font.render('Change config_file.txt to train with different params', True, white)
+        controls1 = font.render(
+            "LEFT and RIGHT Keys to run; SPACE to Jump", True, white
+        )
+        controls2 = font.render("Press ENTER to enter simulation speeding", True, white)
+        controls3 = font.render(
+            "Press +/- to increase/decrease simulation speed", True, white
+        )
+        controls4 = font.render(
+            "Trained models saved in /trained_models/model1,2,3,...", True, white
+        )
+        controls5 = font.render("Stats saved in this folder every 5 gens", True, white)
+        controls6 = font.render(
+            "Change config_file.txt to train with different params", True, white
+        )
 
-        SCREEN.blit(controls1, (SCREEN_MAX / 2 - controls1.get_width() / 2, versus_box.y + 200-c*2))
-        SCREEN.blit(controls2, (SCREEN_MAX / 2 - controls2.get_width() / 2, versus_box.y + 230-c*2))
-        SCREEN.blit(controls3, (SCREEN_MAX / 2 - controls3.get_width() / 2, versus_box.y + 260-c*2))
-        SCREEN.blit(controls4, (SCREEN_MAX / 2 - controls4.get_width() / 2, versus_box.y + 290-c*2))
-        SCREEN.blit(controls5, (SCREEN_MAX / 2 - controls5.get_width() / 2, versus_box.y + 320-c*2))
-        SCREEN.blit(controls6, (SCREEN_MAX / 2 - controls6.get_width() / 2, versus_box.y + 350-c*2))
+        SCREEN.blit(
+            controls1,
+            (SCREEN_MAX / 2 - controls1.get_width() / 2, versus_box.y + 200 - c * 2),
+        )
+        SCREEN.blit(
+            controls2,
+            (SCREEN_MAX / 2 - controls2.get_width() / 2, versus_box.y + 230 - c * 2),
+        )
+        SCREEN.blit(
+            controls3,
+            (SCREEN_MAX / 2 - controls3.get_width() / 2, versus_box.y + 260 - c * 2),
+        )
+        SCREEN.blit(
+            controls4,
+            (SCREEN_MAX / 2 - controls4.get_width() / 2, versus_box.y + 290 - c * 2),
+        )
+        SCREEN.blit(
+            controls5,
+            (SCREEN_MAX / 2 - controls5.get_width() / 2, versus_box.y + 320 - c * 2),
+        )
+        SCREEN.blit(
+            controls6,
+            (SCREEN_MAX / 2 - controls6.get_width() / 2, versus_box.y + 350 - c * 2),
+        )
         # Blit the text.
         SCREEN.blit(txt_surface1, (play_box.x + 5, play_box.y + 5))
         SCREEN.blit(txt_surface2, (train_ai_box.x + 5, train_ai_box.y + 5))
@@ -1081,16 +1235,22 @@ def menu():
         SCREEN.blit(txt_surface4, (versus_box.x + 5, versus_box.y + 5))
         # Blit the play_box rect.
         pygame.draw.rect(SCREEN, color_active if play else color_inactive, play_box, 2)
-        pygame.draw.rect(SCREEN, color_active if train_ai else color_inactive, train_ai_box, 2)
-        pygame.draw.rect(SCREEN, color_active if play_ai else color_inactive, play_ai_box, 2)
-        pygame.draw.rect(SCREEN, color_active if versus else color_inactive, versus_box, 2)
+        pygame.draw.rect(
+            SCREEN, color_active if train_ai else color_inactive, train_ai_box, 2
+        )
+        pygame.draw.rect(
+            SCREEN, color_active if play_ai else color_inactive, play_ai_box, 2
+        )
+        pygame.draw.rect(
+            SCREEN, color_active if versus else color_inactive, versus_box, 2
+        )
         pygame.display.update()
         clock.tick(60)
     return open_file, play, play_ai, train_ai, versus
 
 
 def screen_options():
-    pygame.display.set_caption('icyAI - AI learning to play Icy Tower')
+    pygame.display.set_caption("icyAI - AI learning to play Icy Tower")
     screen = pygame.display.set_mode((800, 400), 0, 32)
     # font = pygame.font.Font(None, 32)
     font = FONT
@@ -1100,7 +1260,7 @@ def screen_options():
     small_box = pygame.Rect(30, 200, 140, 32)
     medium_box = pygame.Rect(280, 200, 140, 32)
     large_box = pygame.Rect(530, 200, 140, 32)
-    color_inactive = pygame.Color('lightskyblue3')
+    color_inactive = pygame.Color("lightskyblue3")
     color_active = GREEN
 
     while True:
@@ -1145,10 +1305,16 @@ def screen_options():
             large = False
 
         # Render the current text.
-        txt_surface1 = font.render('Choose screen size', True, color_inactive)
-        txt_surface2 = font.render('small', True, color_active if small else color_inactive)
-        txt_surface3 = font.render('medium', True, color_active if medium else color_inactive)
-        txt_surface4 = font.render('large (recommended)', True, color_active if large else color_inactive)
+        txt_surface1 = font.render("Choose screen size", True, color_inactive)
+        txt_surface2 = font.render(
+            "small", True, color_active if small else color_inactive
+        )
+        txt_surface3 = font.render(
+            "medium", True, color_active if medium else color_inactive
+        )
+        txt_surface4 = font.render(
+            "large (recommended)", True, color_active if large else color_inactive
+        )
 
         # Resize the box if the text is too long.
         width = max(200, txt_surface4.get_width() + 10)
@@ -1163,9 +1329,15 @@ def screen_options():
         screen.blit(txt_surface4, (large_box.x + 5, large_box.y + 5))
         # Blit the play_box rect.
         pygame.draw.rect(screen, color_inactive, query_box, 2)
-        pygame.draw.rect(screen, color_active if small else color_inactive, small_box, 2)
-        pygame.draw.rect(screen, color_active if medium else color_inactive, medium_box, 2)
-        pygame.draw.rect(screen, color_active if large else color_inactive, large_box, 2)
+        pygame.draw.rect(
+            screen, color_active if small else color_inactive, small_box, 2
+        )
+        pygame.draw.rect(
+            screen, color_active if medium else color_inactive, medium_box, 2
+        )
+        pygame.draw.rect(
+            screen, color_active if large else color_inactive, large_box, 2
+        )
         pygame.display.update()
 
 
@@ -1177,9 +1349,9 @@ def specify_amount():
     font.bold = False
     query_box = pygame.Rect(100, 100, 140, 32)
     amount_box = pygame.Rect(100, 200, 140, 32)
-    color_inactive = pygame.Color('lightskyblue3')
+    color_inactive = pygame.Color("lightskyblue3")
     color_active = GREEN
-    text = 'specify amount (>=5)'
+    text = "specify amount (>=5)"
     amount = False
     while True:
         screen.fill((0, 0, 0))
@@ -1192,23 +1364,25 @@ def specify_amount():
                 if event.key == pygame.K_RETURN:
                     try:
                         assert int(text) >= 5
-                        SCREEN = pygame.display.set_mode((SCREEN_MAX, SCREEN_MAX), 0, 32)
+                        SCREEN = pygame.display.set_mode(
+                            (SCREEN_MAX, SCREEN_MAX), 0, 32
+                        )
                         return int(text)
                     except:
-                        text = 'number needed (>=5)'
+                        text = "number needed (>=5)"
                 elif event.key == pygame.K_BACKSPACE:
-                    if text == 'specify amount (>=5)' or text == 'number needed (>=5)':
-                        text = ''
+                    if text == "specify amount (>=5)" or text == "number needed (>=5)":
+                        text = ""
                     text = text[:-1]
                 else:
-                    if text == 'specify amount (>=5)' or text == 'number needed (>=5)':
-                        text = ''
+                    if text == "specify amount (>=5)" or text == "number needed (>=5)":
+                        text = ""
                     text += event.unicode
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # If the user clicked on the play_box rect.
                 if amount_box.collidepoint(event.pos):
-                    if text == 'specify amount (>=5)' or text == 'number needed (>=5)':
-                        text = ''
+                    if text == "specify amount (>=5)" or text == "number needed (>=5)":
+                        text = ""
 
             if amount_box.collidepoint(pygame.mouse.get_pos()):
                 # Toggle the active variable.
@@ -1217,8 +1391,10 @@ def specify_amount():
                 amount = False
 
         # Render the current text.
-        txt_surface1 = font.render('How many generations/plays?', True, color_inactive)
-        txt_surface2 = font.render(text, True, color_active if amount else color_inactive)
+        txt_surface1 = font.render("How many generations/plays?", True, color_inactive)
+        txt_surface2 = font.render(
+            text, True, color_active if amount else color_inactive
+        )
 
         # Resize the box if the text is too long.
         width = max(200, txt_surface1.get_width() + 10)
@@ -1230,7 +1406,9 @@ def specify_amount():
         screen.blit(txt_surface2, (amount_box.x + 5, amount_box.y + 5))
         # Blit the play_box rect.
         pygame.draw.rect(screen, color_inactive, query_box, 2)
-        pygame.draw.rect(screen, color_active if amount else color_inactive, amount_box, 2)
+        pygame.draw.rect(
+            screen, color_active if amount else color_inactive, amount_box, 2
+        )
         pygame.display.update()
 
 
@@ -1243,7 +1421,9 @@ def update_variables(screen_size):
     SCALE4 = SCREEN_MAX * 1 / 125  # 8 bonus y 2
     SCALE5 = SCREEN_MAX * 3 / 250  # 12 vel_x threshold for bonus y 2
     SCALE6 = SCREEN_MAX * 2 / 125  # 16 bonus y 3
-    SCALE7 = SCREEN_MAX * 1 / 50  # 20 vel_x threshold for bonus y 3; max speed; vel_y gain when jumping
+    SCALE7 = (
+        SCREEN_MAX * 1 / 50
+    )  # 20 vel_x threshold for bonus y 3; max speed; vel_y gain when jumping
     SCALE8 = SCREEN_MAX * 3 / 100  # 30
     SCALE9 = SCREEN_MAX * 1 / 20  # 50 wall width; player height
     SCALE10 = SCREEN_MAX * 3 / 20  # 150 distance between tiles
@@ -1258,26 +1438,30 @@ def update_variables(screen_size):
     SCREEN = pygame.display.set_mode((SCREEN_MAX, SCREEN_MAX), 0, 32)
 
     # loading sprites and conversion
-    IMAGE = pygame.image.load(os.path.join('sprites', 'icyMan.png')).convert_alpha()
+    IMAGE = pygame.image.load(os.path.join("sprites", "icyMan.png")).convert_alpha()
     IMAGE_OG = IMAGE
-    IMAGE_ANTAGONIST = pygame.image.load(os.path.join('sprites', 'icyMan_antagonist.png')).convert_alpha()
+    IMAGE_ANTAGONIST = pygame.image.load(
+        os.path.join("sprites", "icyMan_antagonist.png")
+    ).convert_alpha()
     IMAGE = pygame.transform.scale(IMAGE, (int(SCALE8), int(SCALE9)))
-    IMAGE_ANTAGONIST = pygame.transform.scale(IMAGE_ANTAGONIST, (int(SCALE8), int(SCALE9)))
-    IMAGE2 = pygame.image.load(os.path.join('sprites', 'icyMan2.png')).convert_alpha()
+    IMAGE_ANTAGONIST = pygame.transform.scale(
+        IMAGE_ANTAGONIST, (int(SCALE8), int(SCALE9))
+    )
+    IMAGE2 = pygame.image.load(os.path.join("sprites", "icyMan2.png")).convert_alpha()
     IMAGE2 = pygame.transform.scale(IMAGE2, (int(SCALE8), int(SCALE9)))
-    IMAGE3 = pygame.image.load(os.path.join('sprites', 'icyMan3.png')).convert_alpha()
+    IMAGE3 = pygame.image.load(os.path.join("sprites", "icyMan3.png")).convert_alpha()
     IMAGE3 = pygame.transform.scale(IMAGE3, (int(SCALE8), int(SCALE9)))
-    IMAGE4 = pygame.image.load(os.path.join('sprites', 'icyMan4.png')).convert_alpha()
+    IMAGE4 = pygame.image.load(os.path.join("sprites", "icyMan4.png")).convert_alpha()
     IMAGE4 = pygame.transform.scale(IMAGE4, (int(SCALE8), int(SCALE9)))
-    IMAGE5 = pygame.image.load(os.path.join('sprites', 'icyMan5.png')).convert_alpha()
+    IMAGE5 = pygame.image.load(os.path.join("sprites", "icyMan5.png")).convert_alpha()
     IMAGE5 = pygame.transform.scale(IMAGE5, (int(SCALE8), int(SCALE9)))
     COLOR_IMAGE = pygame.Surface(IMAGE.get_size()).convert_alpha()
     COLOR_IMAGE.fill(RED)
     ICY_IMAGES = [IMAGE, IMAGE2, IMAGE3, IMAGE4, IMAGE5]
-    ICE = pygame.image.load(os.path.join('sprites', 'icy2.png')).convert_alpha()
-    BG = pygame.image.load(os.path.join('sprites', 'background.jpg'))
+    ICE = pygame.image.load(os.path.join("sprites", "icy2.png")).convert_alpha()
+    BG = pygame.image.load(os.path.join("sprites", "background.jpg"))
     BG = pygame.transform.scale(BG, (SCREEN_MAX, SCREEN_MAX))
-    WALL_RIGHT = pygame.image.load(os.path.join('sprites', 'wall2.png'))
+    WALL_RIGHT = pygame.image.load(os.path.join("sprites", "wall2.png"))
     WALL_RIGHT = pygame.transform.scale(WALL_RIGHT, (int(WALL_WIDTH), SCREEN_MAX))
     WALL_RIGHT_FLIP = pygame.transform.flip(WALL_RIGHT, False, True)
     WALL_LEFT = pygame.transform.flip(WALL_RIGHT, True, True)
