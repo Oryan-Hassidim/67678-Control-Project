@@ -126,6 +126,7 @@ def main(genomes, config):
                 > screen_size - game.human_players[0].rect.height
             ):
                 if classes.DQNET is not None:
+                    print(f"score: {game.score:>6}  |  highest: {game.highest_floor:>6}", end="  |   ")
                     classes.DQNET.update(-1, True)
                 break
         if classes.DQNET is not None and classes.FRAME_NUMBER % 4 == 1:
@@ -293,17 +294,27 @@ def run(config_path, open_file, play_ai, train_ai, versus, runs):
         if classes.DQNET is not None and classes.DQNET.training:
             net = classes.DQNET
             # tr = tracker.SummaryTracker()
-            while True:
-                main(genomes=None, config=None)
-                gc.collect()
-                print(
-                    f"{net.frame_number:>6}/{net.total_steps} | {net.frame_number/net.total_steps:.2%}"
-                )
-                if net.frame_number > net.total_steps:
-                    net.save()
-                    pygame.quit()
-                    print(f"model saved to {net.file_path}")
-                    exit(0)
+            try:
+                while True:
+                    main(genomes=None, config=None)
+                    gc.collect()
+                    print(
+                        f"{net.frame_number:>7}/{net.total_steps} | {net.frame_number / net.total_steps:.2%}"
+                    )
+                    if net.frame_number > net.total_steps:
+                        break
+            except Exception as e:
+                print(e)
+            except KeyboardInterrupt as e:
+                print(e)
+            
+            print("Saving model...")
+            net.save()
+            net.close()
+            pygame.quit()
+            print(f"model saved to {net.file_path}")
+            print("Exiting...")
+            exit(0)
 
                 # tr.print_diff()
 
@@ -334,11 +345,9 @@ if __name__ == "__main__":
         default=os.path.join("trained_models", "dqn_model.pkl"),
     )
     parser.add_argument(
-        "-N", "--replay", type=int, help="size of replay memory", default=1_000
+        "-N", "--replay", type=int, help="size of replay memory", default=10_000
     )
-    parser.add_argument(
-        "-T", "--total", type=int, help="total steps", default=10_000
-    )
+    parser.add_argument("-T", "--total", type=int, help="total steps", default=100_000)
     parser.add_argument("-b", "--batch", type=int, help="batch size", default=32)
     parser.add_argument("-g", "--gamma", type=float, help="gamma", default=0.9)
     args = parser.parse_args()
@@ -364,8 +373,12 @@ if __name__ == "__main__":
                 gamma=args.gamma,
                 dev=dev,
             )
+            if os.path.exists(args.path):
+                classes.DQNET.load()
         else:
             classes.DQNET = DQN(SCREEN, True, dev=dev, training=False, total_steps=inf)
+            if os.path.exists(args.path):
+                classes.DQNET.load()
     start_time = time.time()
     local_dir = os.path.dirname(__name__)
     config_path = os.path.join(local_dir, "config_file.txt")

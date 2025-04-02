@@ -1,6 +1,6 @@
 import cv2
 import torch
-from dqn import Sample, ExperienceReplayMemory
+from dqn import Transition, ExperienceReplayMemory
 import time
 
 replay_memory = ExperienceReplayMemory(N=1_000)
